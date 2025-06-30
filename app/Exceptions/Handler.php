@@ -9,6 +9,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 class Handler extends ExceptionHandler
 {
@@ -50,37 +51,44 @@ class Handler extends ExceptionHandler
         //     //
         // });
 
-    //         $this->renderable(function (AuthenticationException $e, $request) {
-    //     return response()->json([
-    //         'message' => 'Unauthorized. You do not have permission to perform this action.'
-    //     ], 401);
-    // });
-        
+        //         $this->renderable(function (AuthenticationException $e, $request) {
+        //     return response()->json([
+        //         'message' => 'Unauthorized. You do not have permission to perform this action.'
+        //     ], 401);
+        // });
+
 
         $this->renderable(function (AuthenticationException $e, $request) {
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Unauthenticated. Please log in first.'
-            ], 401);
-        }
-    });
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthenticated. Please log in first.'
+                ], 401);
+            }
+        });
 
-    // Handle unauthorized users (logged in but no permission)
-    $this->renderable(function (AuthorizationException $e, $request) {
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Unauthorized. You do not have permission to access this resource.'
-            ], 403);
-        }
-    });
+        // Handle unauthorized users (logged in but no permission)
+        $this->renderable(function (AuthorizationException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthorized. You do not have permission to access this resource.'
+                ], 403);
+            }
+        });
 
-    $this->renderable(function (UnauthorizedException $e, $request) {
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'message' => 'Unauthorized. You do not have the required role or permission.'
-            ], 403);
-        }
-    });
+        $this->renderable(function (UnauthorizedException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthorized. You do not have the required role or permission.'
+                ], 403);
+            }
+        });
 
+        $this->renderable(function (ThrottleRequestsException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Too many requests. Please wait before trying again.'
+                ], 429);
+            }
+        });
     }
 }

@@ -9,8 +9,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class UsersExport implements FromCollection, WithHeadings
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     public function collection()
     {
         return User::with('roles')->get()->map(function ($user) {
@@ -32,7 +32,7 @@ class UsersExport implements FromCollection, WithHeadings
             'ID',
             'Name',
             'Email',
-            'Password', 
+            'Password',
             'Created At',
             'Updated At',
             'Role',

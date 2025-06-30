@@ -4,41 +4,94 @@ namespace App\Http\Controllers;
 
 use App\Models\Flight;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+
 
 class FlightController extends Controller
 {
 
-   public function index(Request $request)
+    public function index(Request $request)
     {
-        $query = Flight::query();
 
-        // Filtering
-        if ($request->has('departure_city')) {
-            $query->where('departure_city', 'like', '%' . $request->departure_city . '%');
-        }
+        $cacheKey = 'flights.index.' . md5($request->fullUrl());
 
-        if ($request->has('arrival_city')) {
-            $query->where('arrival_city', 'like', '%' . $request->arrival_city . '%');
-        }
+        // Try to get the result from cache or store it if not found
+        $flights = Cache::remember($cacheKey, 60, function () use ($request) {
 
-
-        // Sorting
-        if ($request->has('sort_by')) {
-            $sortDir = $request->get('sort_dir', 'asc');
-            $query->orderBy($request->sort_by, $sortDir);
-        }
+            $query = Flight::query();
+            $query = QueryBuilder::for(\App\Models\Flight::class)
+                ->allowedFilters([
+                    AllowedFilter::exact('departure_city'),
+                    AllowedFilter::exact('arrival_city'),
+                    AllowedFilter::exact('id'),
+                ])
+                ->allowedSorts(['id', 'departure_city', 'arrival_city', 'departure_time', 'arrival_time']);
 
 
-        // Pagination
-        $perPage = $request->get('per_page', 10);
-        return response()->json($query->paginate($perPage));
+            // Pagination
+            $perPage = $request->get('per_page', 10);   // /api/flights?per_page=100
+            return $query->paginate($perPage);
+        });
+
+        return response(['success' => true, 'data' => $flights]);
     }
 
 
     // Get All Passengers For A Specific Flight
     public function passengers($flightId)
-       {
+    {
         $flight = Flight::with('passengers')->findOrFail($flightId);
-        return response()->json($flight->passengers);
-      }
+        return response(['success' => true, 'data' => $flight->passengers]);
+    }
+
+
+    public function show(Flight $flight)
+    {
+        return response([
+            'success' => true,
+            'data' => $flight
+        ]);
+    }
+
+
+    public function store(Request $request)
+    {
+        $formfields = $request->validate([
+            'number' => ['required', 'string', 'max:255'],
+            'departure_city' => 'required',
+            'arrival_city' => ['required', 'different:departure_city'],
+            'departure_time' => ['required', 'date', 'after:now'],
+            'arrival_time' => ['required', 'date', 'after:departure_time']
+        ]);
+        $flight = Flight::create($formfields);
+        return response(['success' => true, 'data' => $flight], 201);
+    }
+
+
+    public function update(Request $request, Flight $flight)
+    {
+        $formfields = $request->validate([
+            'number' =>  ['sometimes', 'required', 'string', 'max:255', 'unique:flights,number,' . $flight->id],
+            'departure_city' => ['sometimes', 'required', 'string', 'max:255'],
+            'arrival_city' => ['sometimes', 'required', 'string', 'different:departure_city', 'max:255'],
+            'departure_time' => ['sometimes', 'required', 'date', 'after:now'],
+            'arrival_time' => ['sometimes', 'required', 'date', 'after:departure_time'],
+        ]);
+        $flight->update($formfields);
+        return response([
+            'success' => true,
+            'data' => $flight
+        ]);
+    }
+
+    public function destroy(Flight $flight)
+    {
+        $flight->delete();
+        return response([
+            'success' => true,
+            'data' => $flight
+        ]);
+    }
 }
