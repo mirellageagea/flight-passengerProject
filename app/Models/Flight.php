@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use OwenIt\Auditing\Auditable;
 
-class Flight extends Model
+class Flight extends Model implements AuditableContract
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     // protected $fillable = [
     //     'number',
@@ -19,9 +21,16 @@ class Flight extends Model
 
     protected $guarded = [];
 
+        protected $casts = [
+        'departure_time' => 'datetime',
+        'arrival_time' => 'datetime',
+    ];
+
     public function passengers()
     {
         //return $this->hasMany(Passenger::class);
         return $this->belongsToMany(Passenger::class, 'flight_passenger', 'flight_id', 'passenger_id');
     }
+
+
 }
