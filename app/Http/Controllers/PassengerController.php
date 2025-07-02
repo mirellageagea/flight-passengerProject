@@ -36,6 +36,14 @@ class PassengerController extends Controller
     }
 
 
+    public function show(Passenger $passenger)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $passenger
+        ]);
+    }
+
 
     public function attachFlights(Request $request, $passengerId)
     {
@@ -55,15 +63,7 @@ class PassengerController extends Controller
         // Return updated passenger with flights
         return response(['success' => true, 'data' => $passenger->load('flights')]);
     }
-    
 
-    public function show(Passenger $passenger)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $passenger
-        ]);
-    }
 
 
     public function store(Request $request)
@@ -86,14 +86,15 @@ class PassengerController extends Controller
     public function update(Request $request, Passenger $passenger)
     {
         $formfields = $request->validate([
-            'first_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'last_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'flight_id' => ['sometimes', 'required', 'exists:flights,id'],
-            'email' => ['sometimes', 'required', 'email', 'unique:passengers,email,' . $passenger->id],
-            'password' => ['sometimes', 'required', 'min:8'],
-            'dob' => ['sometimes', 'required', 'date', 'before:today'],
-            'passport_expiry_date' => ['sometimes', 'required', 'date', 'after:today'],
-            'achievement_badge' => ['sometimes', 'integer', 'min:0'],
+
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'flight_id' => ['nullable', 'exists:flights,id'],
+            'email' => ['nullable', 'email', 'unique:passengers,email,' . $passenger->id],
+            'password' => ['nullable', 'min:8'],
+            'dob' => ['nullable', 'date', 'before:today'],
+            'passport_expiry_date' => ['nullable', 'date', 'after:today'],
+            'achievement_badge' => ['nullable', 'integer', 'min:0'],
         ]);
 
 
