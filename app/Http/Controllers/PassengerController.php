@@ -28,11 +28,14 @@ class PassengerController extends Controller
                 'email',
                 'dob',
                 'created_at'
-            ]);
+            ])
+            ->paginate($request->get('per_page', 10))
+            ->appends(request()->query());
+
 
         //  Pagination
-        $perPage = $request->get('per_page', 10);
-        return response(['success' => true, 'data' => $query->paginate($perPage)]);
+        // Return the already paginated query directly
+        return response(['success' => true, 'data' => $query]);
     }
 
 
@@ -43,27 +46,6 @@ class PassengerController extends Controller
             'data' => $passenger
         ]);
     }
-
-
-    public function attachFlights(Request $request, $passengerId)
-    {
-        $passenger = Passenger::findOrFail($passengerId);
-
-        // Validate that flight_ids is an array of integers
-        $request->validate([
-            'flight_ids' => 'required|array',
-            'flight_ids.*' => 'integer|exists:flights,id',
-        ]);
-
-        // Attach flights (use syncWithoutDetaching to add without removing existing flights)
-        $passenger->flights()->syncWithoutDetaching($request->flight_ids);
-
-
-
-        // Return updated passenger with flights
-        return response(['success' => true, 'data' => $passenger->load('flights')]);
-    }
-
 
 
     public function store(Request $request)
@@ -115,5 +97,25 @@ class PassengerController extends Controller
             ],
             Response::HTTP_NO_CONTENT
         );
+    }
+
+
+    
+    public function attachFlights(Request $request, $passengerId)
+    {
+        $passenger = Passenger::findOrFail($passengerId);
+
+        // Validate that flight_ids is an array of integers
+        $request->validate([
+            'flight_ids' => 'required|array',
+            'flight_ids.*' => 'integer|exists:flights,id',
+        ]);
+
+        // Attach flights (use syncWithoutDetaching to add without removing existing flights)
+        $passenger->flights()->syncWithoutDetaching($request->flight_ids);
+
+
+        // Return updated passenger with flights
+        return response(['success' => true, 'data' => $passenger->load('flights')]);
     }
 }

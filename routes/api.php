@@ -7,6 +7,8 @@ use App\Http\Controllers\FlightController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ImportPassengerController;
+use App\Http\Controllers\PassengerImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,62 +25,48 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-
-
-// Admin-only routes
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
-
-    // View all users and user by ID
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);
-
-    // Admin-only routes
-    Route::middleware('role:admin')->group(function () {
-        Route::middleware('throttle:7,1')->post('/users', [UserController::class, 'store']);
-        Route::middleware('throttle:5,1')->post('/passenger', [PassengerController::class, 'store']);
-        Route::middleware('throttle:5,1')->post('/flights', [FlightController::class, 'store']);
-
-        Route::middleware('throttle:5,1')->put('/users/{id}', [UserController::class, 'update']);
-        Route::middleware('throttle:5,1')->put('/passenger/{passenger}', [PassengerController::class, 'update']);
-        Route::middleware('throttle:5,1')->put('/flights/{flight}', [FlightController::class, 'update']);
-
-        Route::middleware('throttle:5,1')->delete('/users/{id}', [UserController::class, 'destroy']);
-        Route::middleware('throttle:5,1')->delete('/passenger/{passenger}', [PassengerController::class, 'destroy']);
-        Route::middleware('throttle:5,1')->delete('/flights/{flight}', [FlightController::class, 'destroy']);
-    });
-
-    
-    // Get All Flights From THe Database with pagination, filtering and sorting
-    Route::get('/flights', [FlightController::class, 'index']);
-    // Route to get one flight by ID
-    Route::get('/flights/{flight}', [FlightController::class, 'show']);
-
-    
-    // Get All Passengers Belonging To A Requested Flight
-    Route::get('/flights/{flight}/passengers', [FlightController::class, 'passengers']);
-
-    
-    // Get All Passengers From THe Database with pagination, filtering and sorting
-    Route::get('/passengers', [PassengerController::class, 'index']);
-    // Get one passenger
-    Route::get('/passengers/{passenger}', [PassengerController::class, 'show']);
-    // Attach flights to a passenger
-    Route::post('/passengers/{passenger}/flights', [PassengerController::class, 'attachFlights']);
-
-    
-    // Export Users to an excel sheet
-    Route::get('/export-users', [ExportController::class, 'exportUsers']);
-});
-
-
 // User Login
 Route::post('/login', [AuthController::class, 'login']);
 
 // User Logout
-
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
+// Authentication
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+
+    // View all or by ID
+    Route::apiResource('users', UserController::class)->only(['index', 'show']);
+    Route::apiResource('flights', FlightController::class)->only(['index', 'show']);
+    Route::apiResource('passengers', PassengerController::class)->only(['index', 'show']);
+
+    
+    // Admin-only routes
+    Route::middleware('role:admin')->group(function () {
+        //  Users apiResource
+        Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:30,1');
+
+        // Passengers apiResource
+        Route::apiResource('passenger', PassengerController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:5,1');
+
+        // Flights apiResource
+        Route::apiResource('flights', FlightController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:5,1');
+
+        // Import passengers from Excel
+        Route::post('/import-passengers', [ImportPassengerController::class, 'import'])->middleware('throttle:5,1');
+
+        // Export Users to an excel sheet
+        Route::get('/export-users', [ExportController::class, 'exportUsers']);
+
+        // Upload an Image(original and thumbnail)
+        Route::post('/passengers/{passenger}/upload-image', [PassengerImageController::class, 'upload']);
+    });
+
+
+    // Get All Passengers Belonging To A Requested Flight
+    Route::get('/flights/{flight}/passengers', [FlightController::class, 'passengers']);
+    // Attach flights to a passenger
+    Route::post('/passengers/{passenger}/flights', [PassengerController::class, 'attachFlights']);
+});
 

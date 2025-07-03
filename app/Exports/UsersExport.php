@@ -33,8 +33,8 @@ class UsersExport implements FromCollection, WithHeadings
             'Name',
             'Email',
             'Password',
-            'Created At',
-            'Updated At',
+            'Created Date',
+            'Updated Date',
             'Role',
         ];
     }

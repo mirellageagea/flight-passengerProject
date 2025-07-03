@@ -23,28 +23,29 @@ class FlightController extends Controller
             $query = Flight::query();
             $query = QueryBuilder::for(\App\Models\Flight::class)
                 ->allowedFilters([
-                    AllowedFilter::exact('departure_city'),
-                    AllowedFilter::exact('arrival_city'),
+                    'departure_city',
+                    'arrival_city',
                     AllowedFilter::exact('id'),
                 ])
-                ->allowedSorts(['id', 'departure_city', 'arrival_city', 'departure_time', 'arrival_time']);
-
+                ->allowedSorts(['id', 'departure_city', 'arrival_city', 'departure_time', 'arrival_time'])
+                ->paginate($request->get('per_page', 10))
+                ->appends(request()->query());
 
             // Pagination
-            $perPage = $request->get('per_page', 10);   // /api/flights?per_page=100
-            return $query->paginate($perPage);
+            // /api/flights?per_page=100
+            return $query;
         });
 
         return response(['success' => true, 'data' => $flights]);
     }
 
 
-    // Get All Passengers For A Specific Flight
-    public function passengers($flightId)
-    {
-        $flight = Flight::with('passengers')->findOrFail($flightId);
-        return response(['success' => true, 'data' => $flight->passengers]);
-    }
+   // Get All Passengers For A Specific Flight
+    // public function passengers($flightId)
+    // {
+    //     $flight = Flight::with('passengers')->findOrFail($flightId);
+    //     return response(['success' => true, 'data' => $flight->passengers]);
+    // }
 
 
     public function show(Flight $flight)
@@ -73,11 +74,11 @@ class FlightController extends Controller
     public function update(Request $request, Flight $flight)
     {
         $formfields = $request->validate([
-        'number' => ['nullable', 'string', 'max:255', 'unique:flights,number,' . $flight->id],
-        'departure_city' => ['nullable', 'string', 'max:255'],
-        'arrival_city' => ['nullable', 'string', 'different:departure_city', 'max:255'],
-        'departure_time' => ['nullable', 'date', 'after:now'],
-        'arrival_time' => ['nullable', 'date', 'after:departure_time'],
+            'number' => ['nullable', 'string', 'max:255', 'unique:flights,number,' . $flight->id],
+            'departure_city' => ['nullable', 'string', 'max:255'],
+            'arrival_city' => ['nullable', 'string', 'different:departure_city', 'max:255'],
+            'departure_time' => ['nullable', 'date', 'after:now'],
+            'arrival_time' => ['nullable', 'date', 'after:departure_time'],
         ]);
         $flight->update($formfields);
         return response([

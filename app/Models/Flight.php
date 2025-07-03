@@ -21,7 +21,7 @@ class Flight extends Model implements AuditableContract
 
     protected $guarded = [];
 
-        protected $casts = [
+    protected $casts = [
         'departure_time' => 'datetime',
         'arrival_time' => 'datetime',
     ];
@@ -32,5 +32,8 @@ class Flight extends Model implements AuditableContract
         return $this->belongsToMany(Passenger::class, 'flight_passenger', 'flight_id', 'passenger_id');
     }
 
-
+    public function user()
+    {
+        return auth()->user();
+    }
 }

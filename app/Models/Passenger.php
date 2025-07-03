@@ -22,10 +22,11 @@ class Passenger extends Model implements AuditableContract
         'password',
         'dob',
         'passport_expiry_date',
+        'image',
 
     ];
 
-     //protected $guarded = [];
+    //protected $guarded = [];
 
     protected $casts = [
         'password' => HashPassword::class,
@@ -35,5 +36,10 @@ class Passenger extends Model implements AuditableContract
     {
         //return $this->belongsTo(Flight::class);
         return $this->belongsToMany(Flight::class, 'flight_passenger', 'passenger_id', 'flight_id');
+    }
+
+    public function user()
+    {
+        return auth()->user();
     }
 }

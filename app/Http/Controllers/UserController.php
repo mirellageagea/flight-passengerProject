@@ -26,19 +26,21 @@ class UserController extends Controller
                 'name',
                 'email',
                 'created_at',
-            ]);
+            ])
+            ->paginate($request->get('per_page', 10))
+            ->appends(request()->query());
 
-        $perPage = $request->get('per_page', 10); // Default: 10 per page
+        
         return response([
             'success' => true,
-            'data' => $query->paginate($perPage)
+            'data' => $query
         ]);
     }
 
     // Get Only One User By ID (creating show method)
-    public function show($id)
+    public function show(User $user)
     {
-        $user = User::findOrFail($id);
+       
         return response(['success' => true, 'data' => $user]);
     }
 
