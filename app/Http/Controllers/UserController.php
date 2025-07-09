@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Mews\Purifier\Facades\Purifier;
 
 class UserController extends Controller
 {
@@ -30,7 +31,7 @@ class UserController extends Controller
             ->paginate($request->get('per_page', 10))
             ->appends(request()->query());
 
-        
+
         return response([
             'success' => true,
             'data' => $query
@@ -40,19 +41,36 @@ class UserController extends Controller
     // Get Only One User By ID (creating show method)
     public function show(User $user)
     {
-       
+
         return response(['success' => true, 'data' => $user]);
     }
 
     // Create A New User (creating store method)
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $input = $request->all();
+
+        // Clean only 'name'
+        if (isset($input['name'])) {
+            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
+        }
+
+        $input['email'] = trim($input['email'] ?? '');
+        $input['role'] = trim($input['role'] ?? '');
+
+        // $validated = $request->validate([
+        //     'name' => ['required', 'string'],
+        //     'email' => ['required', 'email', 'unique:users'],
+        //     'password' => ['required', 'string', 'min:6'],
+        //     'role' => ['required', 'in:admin,user'],
+        // ]);
+
+        $validated = validator($input, [
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'in:admin,user'],
-        ]);
+        ])->validate();
 
         $user = User::create([
             'name' => $validated['name'],
@@ -74,11 +92,24 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        $validated = $request->validate([
+        $input = $request->all();
+
+        // Purify only fields that may contain HTML/script tags
+        if (isset($input['name'])) {
+            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
+        }
+
+        // $validated = $request->validate([
+        //     'name' => ['nullable', 'string'],
+        //     'email' => ['nullable', 'email', 'unique:users,email,' . $id],
+        //     'password' => ['nullable', 'string', 'min:6'],
+        // ]);
+
+        $validated = validator($input, [
             'name' => ['nullable', 'string'],
             'email' => ['nullable', 'email', 'unique:users,email,' . $id],
             'password' => ['nullable', 'string', 'min:6'],
-        ]);
+        ])->validate();
 
 
         $user->update($validated);

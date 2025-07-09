@@ -1,0 +1,1 @@
+{"version":1,"defects":[],"times":{"Tests\\Unit\\ExampleTest::test_that_true_is_true":0.01,"Tests\\Feature\\AuthLoginTest::test_user_can_login_with_valid_credentials":0.141,"Tests\\Feature\\AuthLoginTest::test_user_cannot_login_with_invalid_credentials":0.231,"Tests\\Feature\\ExampleTest::test_the_application_returns_a_successful_response":0.128}}

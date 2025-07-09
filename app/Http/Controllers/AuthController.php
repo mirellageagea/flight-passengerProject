@@ -14,22 +14,24 @@ class AuthController extends Controller
     // User Login and issue token
     public function login(Request $request)
     {
-        // 1. Validate user input
+        // Validate user input
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-
+        // Attempt login
         if (!auth()->attempt($credentials)) {
             throw ValidationException::withMessages([
                 'email' => 'Your provided credentials could not be verified.',
             ]);
         }
 
-
+        // Get authenticated user
         $user = auth()->user();
 
+        // Destroy all existing tokens (log out everywhere else)
+        $user->tokens()->delete();
 
         $user = User::where('email', $credentials['email'])->first();
 

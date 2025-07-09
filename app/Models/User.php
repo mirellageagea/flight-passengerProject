@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable;
 
+
 class User extends Authenticatable implements AuditableContract
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, Auditable;
