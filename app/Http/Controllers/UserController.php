@@ -88,9 +88,9 @@ class UserController extends Controller
 
 
     // Update an existing User (creating update method)
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
+       // $user = User::findOrFail($id);
 
         $input = $request->all();
 
@@ -107,7 +107,7 @@ class UserController extends Controller
 
         $validated = validator($input, [
             'name' => ['nullable', 'string'],
-            'email' => ['nullable', 'email', 'unique:users,email,' . $id],
+            'email' => ['nullable', 'email', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:6'],
         ])->validate();
 

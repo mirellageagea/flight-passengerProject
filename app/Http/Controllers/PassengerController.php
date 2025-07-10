@@ -101,21 +101,21 @@ class PassengerController extends Controller
 
 
     
-    public function attachFlights(Request $request, $passengerId)
-    {
-        $passenger = Passenger::findOrFail($passengerId);
+    // public function attachFlights(Request $request, $passengerId)
+    // {
+    //     $passenger = Passenger::findOrFail($passengerId);
 
-        // Validate that flight_ids is an array of integers
-        $request->validate([
-            'flight_ids' => 'required|array',
-            'flight_ids.*' => 'integer|exists:flights,id',
-        ]);
+    //     // Validate that flight_ids is an array of integers
+    //     $request->validate([
+    //         'flight_ids' => 'required|array',
+    //         'flight_ids.*' => 'integer|exists:flights,id',
+    //     ]);
 
-        // Attach flights (use syncWithoutDetaching to add without removing existing flights)
-        $passenger->flights()->syncWithoutDetaching($request->flight_ids);
+    //     // Attach flights (use syncWithoutDetaching to add without removing existing flights)
+    //     $passenger->flights()->syncWithoutDetaching($request->flight_ids);
 
 
-        // Return updated passenger with flights
-        return response(['success' => true, 'data' => $passenger->load('flights')]);
-    }
+    //     // Return updated passenger with flights
+    //     return response(['success' => true, 'data' => $passenger->load('flights')]);
+    // }
 }
