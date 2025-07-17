@@ -22,7 +22,11 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
-        
+        \App\Http\Middleware\ContentSecurityPolicy::class,
+        \App\Http\Middleware\HSTS::class,
+        \App\Http\Middleware\PermissionPolicy::class,
+        \App\Http\Middleware\SetReferrerPolicy::class,
+
 
     ];
 
@@ -45,7 +49,8 @@ class Kernel extends HttpKernel
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            
+            'sanitize',
+
         ],
     ];
 
@@ -70,7 +75,9 @@ class Kernel extends HttpKernel
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        
+        'sanitize' => \App\Http\Middleware\SanitizeInput::class,
+
+
 
 
     ];

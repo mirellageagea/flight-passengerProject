@@ -54,27 +54,14 @@ class FlightController extends Controller
 
     public function store(Request $request)
     {
-        $input = $request->all();
-
-        // Sanitize inputs
-        if (isset($input['name'])) {
-            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
-        }
-        if (isset($input['departure_city'])) {
-            $input['departure_city'] = Purifier::clean($input['departure_city'], ['HTML.Allowed' => '']);
-        }
-        if (isset($input['arrival_city'])) {
-            $input['arrival_city'] = Purifier::clean($input['arrival_city'], ['HTML.Allowed' => '']);
-        }
-
-        // Validate sanitized input
-        $formfields = validator($input, [
+        // Validation only (sanitization is now handled by middleware)
+        $formfields = $request->validate([
             'number' => ['required', 'string', 'max:255'],
-            'departure_city' => 'required',
-            'arrival_city' => ['required', 'different:departure_city'],
+            'departure_city' => 'required|string|max:255',
+            'arrival_city' => ['required', 'string', 'different:departure_city', 'max:255'],
             'departure_time' => ['required', 'date', 'after:now'],
             'arrival_time' => ['required', 'date', 'after:departure_time']
-        ])->validate();
+        ]);
 
         $flight = Flight::create($formfields);
         return response(['success' => true, 'data' => $flight], 201);
@@ -83,26 +70,14 @@ class FlightController extends Controller
 
     public function update(Request $request, Flight $flight)
     {
-        $input = $request->all();
-
-        // Sanitize fields
-        if (isset($input['name'])) {
-            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
-        }
-        if (isset($input['departure_city'])) {
-            $input['departure_city'] = Purifier::clean($input['departure_city'], ['HTML.Allowed' => '']);
-        }
-        if (isset($input['arrival_city'])) {
-            $input['arrival_city'] = Purifier::clean($input['arrival_city'], ['HTML.Allowed' => '']);
-        }
-
-        $formfields = validator($input, [
+        // Validation only (sanitization handled by middleware)
+        $formfields = $request->validate([
             'number' => ['nullable', 'string', 'max:255', 'unique:flights,number,' . $flight->id],
             'departure_city' => ['nullable', 'string', 'max:255'],
             'arrival_city' => ['nullable', 'string', 'different:departure_city', 'max:255'],
             'departure_time' => ['nullable', 'date', 'after:now'],
             'arrival_time' => ['nullable', 'date', 'after:departure_time'],
-        ])->validate();
+        ]);
 
         $flight->update($formfields);
         return response([
@@ -110,7 +85,7 @@ class FlightController extends Controller
             'data' => $flight
         ]);
     }
-    
+
 
     public function destroy(Flight $flight)
     {

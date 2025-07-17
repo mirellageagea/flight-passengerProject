@@ -48,38 +48,21 @@ class UserController extends Controller
     // Create A New User (creating store method)
     public function store(Request $request)
     {
-        $input = $request->all();
-
-        // Clean only 'name'
-        if (isset($input['name'])) {
-            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
-        }
-
-        $input['email'] = trim($input['email'] ?? '');
-        $input['role'] = trim($input['role'] ?? '');
-
-        // $validated = $request->validate([
-        //     'name' => ['required', 'string'],
-        //     'email' => ['required', 'email', 'unique:users'],
-        //     'password' => ['required', 'string', 'min:6'],
-        //     'role' => ['required', 'in:admin,user'],
-        // ]);
-
-        $validated = validator($input, [
+        $validated = $request->validate([
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'in:admin,user'],
-        ])->validate();
+        ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => $validated['password'],
-            'role' => $validated['role'],  // keep this updated if you want to keep the column
+            'password' => $validated['password'], 
+            'role' => $validated['role'],
         ]);
 
-        // Assign role here
+        // Assign role via spatie
         $user->assignRole($validated['role']);
 
 
@@ -90,26 +73,11 @@ class UserController extends Controller
     // Update an existing User (creating update method)
     public function update(Request $request, User $user)
     {
-       // $user = User::findOrFail($id);
-
-        $input = $request->all();
-
-        // Purify only fields that may contain HTML/script tags
-        if (isset($input['name'])) {
-            $input['name'] = Purifier::clean($input['name'], ['HTML.Allowed' => '']);
-        }
-
-        // $validated = $request->validate([
-        //     'name' => ['nullable', 'string'],
-        //     'email' => ['nullable', 'email', 'unique:users,email,' . $id],
-        //     'password' => ['nullable', 'string', 'min:6'],
-        // ]);
-
-        $validated = validator($input, [
+        $validated = $request->validate([
             'name' => ['nullable', 'string'],
             'email' => ['nullable', 'email', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:6'],
-        ])->validate();
+        ]);
 
 
         $user->update($validated);
